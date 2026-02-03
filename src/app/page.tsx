@@ -419,9 +419,10 @@ export default function Home() {
                                 const inv = getInventoryForShowtime(showtime.formId);
                                 const isSoldOut = inv?.status === "sold_out";
                                 const isLowStock = inv?.status === "low_stock";
-                                const isComingSoon = !showtime.formId || !showtime.url;
+                                const isComingSoon = !showtime.formId;
+                                const ticketUrl = inv?.url || "";
 
-                                // Coming soon - no formId/URL yet
+                                // Coming soon - no formId yet
                                 if (isComingSoon) {
                                   return (
                                     <div
@@ -459,7 +460,7 @@ export default function Home() {
                                 return (
                                   <a
                                     key={idx}
-                                    href={showtime.url}
+                                    href={ticketUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={`showtime-btn px-4 py-3 rounded-lg text-center ${

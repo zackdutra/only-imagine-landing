@@ -1,9 +1,7 @@
 export interface Showtime {
   time: string;
   auditorium: string;
-  capacity: number;
   formId: number | null;
-  url: string;
 }
 
 export interface DateInfo {
@@ -32,6 +30,7 @@ export interface InventoryItem {
   capacity: number;
   available: number;
   status: 'available' | 'low_stock' | 'sold_out' | 'unavailable';
+  url: string;
 }
 
 export interface InventoryResponse {

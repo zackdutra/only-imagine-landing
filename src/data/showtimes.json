@@ -12,68 +12,20 @@
           "date": "2026-02-14",
           "label": "Sat, Feb 14",
           "showtimes": [
-            {
-              "time": "6:00 PM",
-              "auditorium": "Auditorium #3",
-              "capacity": 102,
-              "formId": 982399,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-saturday-february-14--600pm--galleria"
-            },
-            {
-              "time": "6:30 PM",
-              "auditorium": "Auditorium #4",
-              "capacity": 80,
-              "formId": 982439,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-saturday-february-14--630pm--galleria"
-            },
-            {
-              "time": "7:00 PM",
-              "auditorium": "Auditorium #5",
-              "capacity": 80,
-              "formId": 982443,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-saturday-february-14--700pm--galleria"
-            },
-            {
-              "time": "7:30 PM",
-              "auditorium": "Auditorium #9",
-              "capacity": 84,
-              "formId": null,
-              "url": ""
-            }
+            { "time": "6:00 PM", "auditorium": "Auditorium #3", "formId": 982399 },
+            { "time": "6:30 PM", "auditorium": "Auditorium #4", "formId": 982439 },
+            { "time": "7:00 PM", "auditorium": "Auditorium #5", "formId": 982443 },
+            { "time": "7:30 PM", "auditorium": "Auditorium #9", "formId": null }
           ]
         },
         {
           "date": "2026-02-15",
           "label": "Sun, Feb 15",
           "showtimes": [
-            {
-              "time": "6:00 PM",
-              "auditorium": "Auditorium #3",
-              "capacity": 102,
-              "formId": 982451,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-sunday-february-15--600pm--galleria"
-            },
-            {
-              "time": "6:30 PM",
-              "auditorium": "Auditorium #4",
-              "capacity": 80,
-              "formId": 982456,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-sunday-february-15--630pm--galleria"
-            },
-            {
-              "time": "7:00 PM",
-              "auditorium": "Auditorium #5",
-              "capacity": 80,
-              "formId": 982460,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-sunday-february-15--700pm--galleria"
-            },
-            {
-              "time": "7:30 PM",
-              "auditorium": "Auditorium #6",
-              "capacity": 94,
-              "formId": 982463,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-sunday-february-15--730pm--galleria"
-            }
+            { "time": "6:00 PM", "auditorium": "Auditorium #3", "formId": 982451 },
+            { "time": "6:30 PM", "auditorium": "Auditorium #4", "formId": 982456 },
+            { "time": "7:00 PM", "auditorium": "Auditorium #5", "formId": 982460 },
+            { "time": "7:30 PM", "auditorium": "Auditorium #6", "formId": 982463 }
           ]
         }
       ]
@@ -88,68 +40,20 @@
           "date": "2026-02-14",
           "label": "Sat, Feb 14",
           "showtimes": [
-            {
-              "time": "6:00 PM",
-              "auditorium": "Auditorium #2",
-              "capacity": 59,
-              "formId": 982467,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-saturday-february-14--600pm--blue-oaks"
-            },
-            {
-              "time": "6:30 PM",
-              "auditorium": "Auditorium #3",
-              "capacity": 48,
-              "formId": 982472,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-saturday-february-14--630pm--blue-oaks"
-            },
-            {
-              "time": "7:00 PM",
-              "auditorium": "Auditorium #4",
-              "capacity": 48,
-              "formId": 982481,
-              "url": "https://thriveconference.ticketspice.com/i-can-only-imagine-2-saturday-february-14--700pm--blue-oaks"
-            },
-            {
-              "time": "7:30 PM",
-              "auditorium": "Auditorium #5",
-              "capacity": 32,
-              "formId": null,
-              "url": ""
-            }
+            { "time": "6:00 PM", "auditorium": "Auditorium #2", "formId": 982467 },
+            { "time": "6:30 PM", "auditorium": "Auditorium #3", "formId": 982472 },
+            { "time": "7:00 PM", "auditorium": "Auditorium #4", "formId": 982481 },
+            { "time": "7:30 PM", "auditorium": "Auditorium #5", "formId": null }
           ]
         },
         {
           "date": "2026-02-15",
           "label": "Sun, Feb 15",
           "showtimes": [
-            {
-              "time": "6:00 PM",
-              "auditorium": "Auditorium #2",
-              "capacity": 59,
-              "formId": null,
-              "url": ""
-            },
-            {
-              "time": "6:30 PM",
-              "auditorium": "Auditorium #3",
-              "capacity": 48,
-              "formId": null,
-              "url": ""
-            },
-            {
-              "time": "7:00 PM",
-              "auditorium": "Auditorium #4",
-              "capacity": 48,
-              "formId": null,
-              "url": ""
-            },
-            {
-              "time": "7:30 PM",
-              "auditorium": "Auditorium #5",
-              "capacity": 32,
-              "formId": null,
-              "url": ""
-            }
+            { "time": "6:00 PM", "auditorium": "Auditorium #2", "formId": null },
+            { "time": "6:30 PM", "auditorium": "Auditorium #3", "formId": null },
+            { "time": "7:00 PM", "auditorium": "Auditorium #4", "formId": null },
+            { "time": "7:30 PM", "auditorium": "Auditorium #5", "formId": null }
           ]
         }
       ]

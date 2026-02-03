@@ -10,10 +10,20 @@ interface WebconnexInventoryItem {
   quantity: number;
 }
 
-interface WebconnexResponse {
+interface WebconnexInventoryResponse {
   responseCode: number;
   data: WebconnexInventoryItem[];
   totalResults: number;
+}
+
+interface WebconnexFormResponse {
+  responseCode: number;
+  data: {
+    id: number;
+    name: string;
+    publishedPath: string;
+    status: string;
+  };
 }
 
 interface InventoryResult {
@@ -22,6 +32,7 @@ interface InventoryResult {
   capacity: number;
   available: number;
   status: 'available' | 'low_stock' | 'sold_out' | 'unavailable';
+  url: string;
 }
 
 function determineStatus(sold: number, capacity: number): InventoryResult['status'] {
@@ -60,57 +71,76 @@ export async function GET(request: NextRequest) {
 
   const results: Record<number, InventoryResult> = {};
 
-  // Fetch inventory for each form in parallel
-  const inventoryPromises = formIds.map(async (formId) => {
+  // Fetch form details and inventory for each form in parallel
+  const fetchPromises = formIds.map(async (formId) => {
     try {
-      const response = await fetch(
-        `${WEBCONNEX_API_URL}/forms/${formId}/inventory`,
-        {
-          headers: {
-            'apiKey': API_KEY,
-          },
-          // Cache for 30 seconds
-          next: { revalidate: 30 },
-        }
-      );
+      // Fetch both form details (for URL) and inventory in parallel
+      const [formResponse, inventoryResponse] = await Promise.all([
+        fetch(
+          `${WEBCONNEX_API_URL}/forms/${formId}?product=ticketspice.com`,
+          {
+            headers: { 'apiKey': API_KEY },
+            next: { revalidate: 300 }, // Cache form details for 5 minutes
+          }
+        ),
+        fetch(
+          `${WEBCONNEX_API_URL}/forms/${formId}/inventory`,
+          {
+            headers: { 'apiKey': API_KEY },
+            next: { revalidate: 30 }, // Cache inventory for 30 seconds
+          }
+        ),
+      ]);
 
-      if (!response.ok) {
-        console.error(`Failed to fetch inventory for form ${formId}: ${response.status}`);
+      if (!formResponse.ok || !inventoryResponse.ok) {
+        console.error(`Failed to fetch data for form ${formId}`);
         return null;
       }
 
-      const data: WebconnexResponse = await response.json();
+      const formData: WebconnexFormResponse = await formResponse.json();
+      const inventoryData: WebconnexInventoryResponse = await inventoryResponse.json();
 
-      if (data.responseCode === 200 && data.data && data.data.length > 0) {
-        // Sum up all inventory items (in case there are multiple ticket levels)
-        const totals = data.data.reduce(
+      if (formData.responseCode !== 200 || !formData.data) {
+        return null;
+      }
+
+      // Get URL from form data
+      const url = formData.data.publishedPath || '';
+
+      // Sum up all inventory items (in case there are multiple ticket levels)
+      let sold = 0;
+      let capacity = 0;
+
+      if (inventoryData.responseCode === 200 && inventoryData.data && inventoryData.data.length > 0) {
+        const totals = inventoryData.data.reduce(
           (acc, item) => ({
             sold: acc.sold + item.sold,
             capacity: acc.capacity + item.quantity,
           }),
           { sold: 0, capacity: 0 }
         );
-
-        return {
-          formId,
-          sold: totals.sold,
-          capacity: totals.capacity,
-          available: totals.capacity - totals.sold,
-          status: determineStatus(totals.sold, totals.capacity),
-        };
+        sold = totals.sold;
+        capacity = totals.capacity;
       }
 
-      return null;
+      return {
+        formId,
+        sold,
+        capacity,
+        available: capacity - sold,
+        status: determineStatus(sold, capacity),
+        url,
+      };
     } catch (error) {
-      console.error(`Error fetching inventory for form ${formId}:`, error);
+      console.error(`Error fetching data for form ${formId}:`, error);
       return null;
     }
   });
 
-  const inventoryResults = await Promise.all(inventoryPromises);
+  const fetchResults = await Promise.all(fetchPromises);
 
   // Build results object
-  inventoryResults.forEach((result) => {
+  fetchResults.forEach((result) => {
     if (result) {
       results[result.formId] = result;
     }
