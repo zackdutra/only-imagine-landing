@@ -1,64 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import showtimesConfig from "@/data/showtimes.json";
+import type { ShowtimesConfig, InventoryResponse, InventoryItem } from "@/types/showtimes";
 
-// Showtime data structure
-const theaters = [
-  {
-    id: "roseville",
-    name: "Cinemark Roseville Galleria Mall & XD",
-    location: "Roseville, CA",
-    dates: [
-      {
-        date: "2/14/2026",
-        label: "Fri, Feb 14",
-        showtimes: [
-          { time: "6:00 PM", auditorium: "Auditorium #3", url: "https://thriveconference.ticketspice.com/roseville-214-6PM" },
-          { time: "6:30 PM", auditorium: "Auditorium #4", url: "https://thriveconference.ticketspice.com/roseville-214-630PM" },
-          { time: "7:00 PM", auditorium: "Auditorium #5", url: "https://thriveconference.ticketspice.com/roseville-214-7PM" },
-        ],
-      },
-      {
-        date: "2/15/2026",
-        label: "Sat, Feb 15",
-        showtimes: [
-          { time: "6:00 PM", auditorium: "Auditorium #3", url: "https://thriveconference.ticketspice.com/roseville-215-6PM" },
-          { time: "6:30 PM", auditorium: "Auditorium #4", url: "https://thriveconference.ticketspice.com/roseville-215-630PM" },
-          { time: "7:00 PM", auditorium: "Auditorium #5", url: "https://thriveconference.ticketspice.com/roseville-215-7PM" },
-          { time: "7:30 PM", auditorium: "Auditorium #6", url: "https://thriveconference.ticketspice.com/roseville-215-730PM" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "rocklin",
-    name: "Cinemark Century Blue Oaks Theatres & XD",
-    location: "Rocklin, CA",
-    dates: [
-      {
-        date: "2/14/2026",
-        label: "Fri, Feb 14",
-        showtimes: [
-          { time: "6:00 PM", auditorium: "Auditorium #2", url: "https://thriveconference.ticketspice.com/rocklin-214-6PM" },
-          { time: "6:30 PM", auditorium: "Auditorium #3", url: "https://thriveconference.ticketspice.com/rocklin-214-630PM" },
-          { time: "7:00 PM", auditorium: "Auditorium #4", url: "https://thriveconference.ticketspice.com/rocklin-214-7PM" },
-          { time: "7:30 PM", auditorium: "Auditorium #5", url: "https://thriveconference.ticketspice.com/rocklin-214-730PM" },
-        ],
-      },
-      {
-        date: "2/15/2026",
-        label: "Sat, Feb 15",
-        showtimes: [
-          { time: "6:00 PM", auditorium: "Auditorium #2", url: "https://thriveconference.ticketspice.com/rocklin-215-6PM" },
-          { time: "6:30 PM", auditorium: "Auditorium #3", url: "https://thriveconference.ticketspice.com/rocklin-215-630PM" },
-          { time: "7:00 PM", auditorium: "Auditorium #4", url: "https://thriveconference.ticketspice.com/rocklin-215-7PM" },
-          { time: "7:30 PM", auditorium: "Auditorium #5", url: "https://thriveconference.ticketspice.com/rocklin-215-730PM" },
-        ],
-      },
-    ],
-  },
-];
+const { theaters, ticketPrice } = showtimesConfig as ShowtimesConfig;
 
 function TicketIcon() {
   return (
@@ -131,6 +78,50 @@ function ChevronDownIcon() {
 export default function Home() {
   const [selectedTheater, setSelectedTheater] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [inventory, setInventory] = useState<InventoryResponse>({});
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+
+  // Fetch inventory data on mount
+  useEffect(() => {
+    const fetchInventory = async () => {
+      // Collect all form IDs from the config
+      const formIds = theaters
+        .flatMap((theater) =>
+          theater.dates.flatMap((date) =>
+            date.showtimes.map((showtime) => showtime.formId)
+          )
+        )
+        .filter((id): id is number => id !== null);
+
+      if (formIds.length === 0) {
+        setInventoryLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/inventory?formIds=${formIds.join(",")}`);
+        if (response.ok) {
+          const data = await response.json();
+          setInventory(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch inventory:", error);
+      } finally {
+        setInventoryLoading(false);
+      }
+    };
+
+    fetchInventory();
+
+    // Refresh inventory every 60 seconds
+    const interval = setInterval(fetchInventory, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getInventoryForShowtime = (formId: number | null): InventoryItem | null => {
+    if (formId === null) return null;
+    return inventory[formId] || null;
+  };
 
   const handleTheaterSelect = (theaterId: string) => {
     if (selectedTheater === theaterId) {
@@ -210,7 +201,7 @@ export default function Home() {
               className="cta-button flex items-center gap-3 px-8 py-4 rounded-full text-white font-semibold text-lg"
             >
               <TicketIcon />
-              Get Tickets - $15
+              Get Tickets - ${ticketPrice}
             </a>
             <a
               href="#trailer"
@@ -354,7 +345,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-x-8 gap-y-3 justify-center text-sm text-[var(--color-cream)]/80">
               <span className="flex items-center gap-2">
                 <TicketIcon />
-                <strong className="text-[var(--color-brand-light)]">$15</strong> per ticket
+                <strong className="text-[var(--color-brand-light)]">${ticketPrice}</strong> per ticket
               </span>
               <span>General Admission Seating</span>
               <span>No Refunds or Exchanges</span>
@@ -424,22 +415,76 @@ export default function Home() {
                               key={dateInfo.date}
                               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
                             >
-                              {dateInfo.showtimes.map((showtime, idx) => (
-                                <a
-                                  key={idx}
-                                  href={showtime.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="showtime-btn px-4 py-3 rounded-lg text-center"
-                                >
-                                  <span className="block text-lg font-bold">
-                                    {showtime.time}
-                                  </span>
-                                  <span className="block text-xs opacity-70 mt-0.5">
-                                    {showtime.auditorium}
-                                  </span>
-                                </a>
-                              ))}
+                              {dateInfo.showtimes.map((showtime, idx) => {
+                                const inv = getInventoryForShowtime(showtime.formId);
+                                const isSoldOut = inv?.status === "sold_out";
+                                const isLowStock = inv?.status === "low_stock";
+                                const isComingSoon = !showtime.formId || !showtime.url;
+
+                                // Coming soon - no formId/URL yet
+                                if (isComingSoon) {
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className="showtime-btn showtime-btn-coming-soon px-4 py-3 rounded-lg text-center cursor-not-allowed"
+                                    >
+                                      <span className="block text-lg font-bold opacity-60">
+                                        {showtime.time}
+                                      </span>
+                                      <span className="block text-xs text-[var(--color-brand-light)] mt-0.5">
+                                        Coming Soon
+                                      </span>
+                                    </div>
+                                  );
+                                }
+
+                                // Sold out
+                                if (isSoldOut) {
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className="showtime-btn showtime-btn-sold-out px-4 py-3 rounded-lg text-center cursor-not-allowed"
+                                    >
+                                      <span className="block text-lg font-bold line-through opacity-50">
+                                        {showtime.time}
+                                      </span>
+                                      <span className="block text-xs font-semibold text-red-400 mt-0.5">
+                                        Sold Out
+                                      </span>
+                                    </div>
+                                  );
+                                }
+
+                                // Available for purchase
+                                return (
+                                  <a
+                                    key={idx}
+                                    href={showtime.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`showtime-btn px-4 py-3 rounded-lg text-center ${
+                                      isLowStock ? "showtime-btn-low-stock" : ""
+                                    }`}
+                                  >
+                                    <span className="block text-lg font-bold">
+                                      {showtime.time}
+                                    </span>
+                                    {isLowStock && inv ? (
+                                      <span className="block text-xs font-semibold text-amber-400 mt-0.5">
+                                        Only {inv.available} left!
+                                      </span>
+                                    ) : inv && !inventoryLoading ? (
+                                      <span className="block text-xs opacity-70 mt-0.5">
+                                        {inv.available} available
+                                      </span>
+                                    ) : (
+                                      <span className="block text-xs opacity-70 mt-0.5">
+                                        {showtime.auditorium}
+                                      </span>
+                                    )}
+                                  </a>
+                                );
+                              })}
                             </div>
                           )
                       )}

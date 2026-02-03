@@ -187,6 +187,42 @@ body {
   z-index: 1;
 }
 
+/* Sold out showtime button */
+.showtime-btn-sold-out {
+  background: linear-gradient(135deg, rgba(60, 60, 60, 0.3) 0%, rgba(40, 40, 40, 0.2) 100%);
+  border: 1px solid rgba(100, 100, 100, 0.3);
+  color: rgba(248, 244, 235, 0.4);
+}
+
+.showtime-btn-sold-out::before {
+  display: none;
+}
+
+/* Low stock showtime button */
+.showtime-btn-low-stock {
+  border-color: rgba(251, 191, 36, 0.5);
+  animation: pulse-low-stock 2s ease-in-out infinite;
+}
+
+@keyframes pulse-low-stock {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px rgba(251, 191, 36, 0.3);
+  }
+}
+
+/* Coming soon showtime button */
+.showtime-btn-coming-soon {
+  background: linear-gradient(135deg, rgba(211, 145, 44, 0.05) 0%, rgba(211, 145, 44, 0.02) 100%);
+  border: 1px dashed rgba(211, 145, 44, 0.3);
+}
+
+.showtime-btn-coming-soon::before {
+  display: none;
+}
+
 /* Date pill */
 .date-pill {
   background: linear-gradient(90deg, var(--color-brand), var(--color-brand-light));
