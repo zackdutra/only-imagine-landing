@@ -132,6 +132,20 @@ export default function Home() {
     setSelectedDate(selectedDate === date ? null : date);
   };
 
+  const getMapsUrl = (address: string) => {
+    const encodedAddress = encodeURIComponent(address);
+    // Check if user is on Apple device (iOS, iPadOS, or macOS Safari)
+    const isApple = typeof navigator !== "undefined" &&
+      (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+       (navigator.userAgent.includes("Mac") && "ontouchend" in document) ||
+       (navigator.userAgent.includes("Mac") && navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome")));
+
+    if (isApple) {
+      return `https://maps.apple.com/?address=${encodedAddress}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+  };
+
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
@@ -361,10 +375,16 @@ export default function Home() {
                     <h3 className="font-[var(--font-display)] text-xl md:text-2xl text-[var(--color-cream)] mb-1">
                       {theater.name}
                     </h3>
-                    <p className="flex items-center gap-2 text-[var(--color-cream)]/60 text-sm">
+                    <a
+                      href={getMapsUrl(theater.address || theater.location)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2 text-[var(--color-cream)]/60 text-sm hover:text-[var(--color-brand-light)] transition-colors"
+                    >
                       <MapPinIcon />
                       {theater.location}
-                    </p>
+                    </a>
                   </div>
                   <div
                     className={`transform transition-transform duration-300 text-[var(--color-brand)] ${
