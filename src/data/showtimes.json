@@ -15,7 +15,7 @@
             { "auditorium": "Auditorium #3", "formId": 982399 },
             { "auditorium": "Auditorium #4", "formId": 982439 },
             { "auditorium": "Auditorium #5", "formId": 982443 },
-            { "auditorium": "Auditorium #9", "formId": null, "time": "7:30 PM" }
+            { "auditorium": "Auditorium #9", "formId": 982555 }
           ]
         },
         {
@@ -43,17 +43,17 @@
             { "auditorium": "Auditorium #2", "formId": 982467 },
             { "auditorium": "Auditorium #3", "formId": 982472 },
             { "auditorium": "Auditorium #4", "formId": 982481 },
-            { "auditorium": "Auditorium #5", "formId": null, "time": "7:30 PM" }
+            { "auditorium": "Auditorium #5", "formId": 982495 }
           ]
         },
         {
           "date": "2026-02-15",
           "label": "Sun, Feb 15",
           "showtimes": [
-            { "auditorium": "Auditorium #2", "formId": null, "time": "6:00 PM" },
-            { "auditorium": "Auditorium #3", "formId": null, "time": "6:30 PM" },
-            { "auditorium": "Auditorium #4", "formId": null, "time": "7:00 PM" },
-            { "auditorium": "Auditorium #5", "formId": null, "time": "7:30 PM" }
+            { "auditorium": "Auditorium #2", "formId": 982506 },
+            { "auditorium": "Auditorium #3", "formId": 982511 },
+            { "auditorium": "Auditorium #4", "formId": 982516 },
+            { "auditorium": "Auditorium #5", "formId": 982521 }
           ]
         }
       ]
