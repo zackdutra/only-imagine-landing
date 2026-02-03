@@ -123,7 +123,10 @@ export async function GET(request: NextRequest) {
       }
 
       // Get URL and time from form data
-      const url = formData.data.publishedPath || '';
+      const publishedPath = formData.data.publishedPath || '';
+      const url = publishedPath && !publishedPath.startsWith('http')
+        ? `https://${publishedPath}`
+        : publishedPath;
       const eventStart = formData.data.eventStart || '';
       const timeZone = formData.data.timeZone || 'America/Los_Angeles';
       const time = formatTime(eventStart, timeZone);
