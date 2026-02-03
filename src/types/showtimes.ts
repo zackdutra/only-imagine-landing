@@ -1,7 +1,7 @@
 export interface Showtime {
-  time: string;
   auditorium: string;
   formId: number | null;
+  time?: string; // Optional fallback for "Coming Soon" showtimes without a formId
 }
 
 export interface DateInfo {
@@ -31,6 +31,8 @@ export interface InventoryItem {
   available: number;
   status: 'available' | 'low_stock' | 'sold_out' | 'unavailable';
   url: string;
+  time: string;
+  eventStart: string;
 }
 
 export interface InventoryResponse {

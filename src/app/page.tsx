@@ -421,6 +421,7 @@ export default function Home() {
                                 const isLowStock = inv?.status === "low_stock";
                                 const isComingSoon = !showtime.formId;
                                 const ticketUrl = inv?.url || "";
+                                const displayTime = inv?.time || showtime.time || "";
 
                                 // Coming soon - no formId yet
                                 if (isComingSoon) {
@@ -430,7 +431,7 @@ export default function Home() {
                                       className="showtime-btn showtime-btn-coming-soon px-4 py-3 rounded-lg text-center cursor-not-allowed"
                                     >
                                       <span className="block text-lg font-bold opacity-60">
-                                        {showtime.time}
+                                        {displayTime || "TBD"}
                                       </span>
                                       <span className="block text-xs text-[var(--color-brand-light)] mt-0.5">
                                         Coming Soon
@@ -447,7 +448,7 @@ export default function Home() {
                                       className="showtime-btn showtime-btn-sold-out px-4 py-3 rounded-lg text-center cursor-not-allowed"
                                     >
                                       <span className="block text-lg font-bold line-through opacity-50">
-                                        {showtime.time}
+                                        {displayTime}
                                       </span>
                                       <span className="block text-xs font-semibold text-red-400 mt-0.5">
                                         Sold Out
@@ -468,7 +469,7 @@ export default function Home() {
                                     }`}
                                   >
                                     <span className="block text-lg font-bold">
-                                      {showtime.time}
+                                      {displayTime}
                                     </span>
                                     {isLowStock && inv ? (
                                       <span className="block text-xs font-semibold text-amber-400 mt-0.5">
