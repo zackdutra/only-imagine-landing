@@ -85,13 +85,9 @@ export default function Home() {
   useEffect(() => {
     const fetchInventory = async () => {
       // Collect all form IDs from the config
-      const formIds = theaters
-        .flatMap((theater) =>
-          theater.dates.flatMap((date) =>
-            date.showtimes.map((showtime) => showtime.formId)
-          )
-        )
-        .filter((id): id is number => id !== null);
+      const formIds = theaters.flatMap((theater) =>
+        theater.dates.flatMap((date) => date.showtimes)
+      );
 
       if (formIds.length === 0) {
         setInventoryLoading(false);
@@ -118,8 +114,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const getInventoryForShowtime = (formId: number | null): InventoryItem | null => {
-    if (formId === null) return null;
+  const getInventory = (formId: number): InventoryItem | null => {
     return inventory[formId] || null;
   };
 
@@ -415,36 +410,18 @@ export default function Home() {
                               key={dateInfo.date}
                               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
                             >
-                              {dateInfo.showtimes.map((showtime, idx) => {
-                                const inv = getInventoryForShowtime(showtime.formId);
+                              {dateInfo.showtimes.map((formId) => {
+                                const inv = getInventory(formId);
                                 const isSoldOut = inv?.status === "sold_out";
                                 const isLowStock = inv?.status === "low_stock";
-                                const isComingSoon = !showtime.formId;
                                 const ticketUrl = inv?.url || "";
-                                const displayTime = inv?.time || showtime.time || "";
-
-                                // Coming soon - no formId yet
-                                if (isComingSoon) {
-                                  return (
-                                    <div
-                                      key={idx}
-                                      className="showtime-btn showtime-btn-coming-soon px-4 py-3 rounded-lg text-center cursor-not-allowed"
-                                    >
-                                      <span className="block text-lg font-bold opacity-60">
-                                        {displayTime || "TBD"}
-                                      </span>
-                                      <span className="block text-xs text-[var(--color-brand-light)] mt-0.5">
-                                        Coming Soon
-                                      </span>
-                                    </div>
-                                  );
-                                }
+                                const displayTime = inv?.time || "";
 
                                 // Sold out
                                 if (isSoldOut) {
                                   return (
                                     <div
-                                      key={idx}
+                                      key={formId}
                                       className="showtime-btn showtime-btn-sold-out px-4 py-3 rounded-lg text-center cursor-not-allowed"
                                     >
                                       <span className="block text-lg font-bold line-through opacity-50">
@@ -460,7 +437,7 @@ export default function Home() {
                                 // Available for purchase
                                 return (
                                   <a
-                                    key={idx}
+                                    key={formId}
                                     href={ticketUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -469,7 +446,7 @@ export default function Home() {
                                     }`}
                                   >
                                     <span className="block text-lg font-bold">
-                                      {displayTime}
+                                      {displayTime || "Loading..."}
                                     </span>
                                     {isLowStock && inv ? (
                                       <span className="block text-xs font-semibold text-amber-400 mt-0.5">
@@ -481,7 +458,7 @@ export default function Home() {
                                       </span>
                                     ) : (
                                       <span className="block text-xs opacity-70 mt-0.5">
-                                        {showtime.auditorium}
+                                        Loading...
                                       </span>
                                     )}
                                   </a>

@@ -1,13 +1,7 @@
-export interface Showtime {
-  auditorium: string;
-  formId: number | null;
-  time?: string; // Optional fallback for "Coming Soon" showtimes without a formId
-}
-
 export interface DateInfo {
   date: string;
   label: string;
-  showtimes: Showtime[];
+  showtimes: number[]; // Array of form IDs
 }
 
 export interface Theater {
