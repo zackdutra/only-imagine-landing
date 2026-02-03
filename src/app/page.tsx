@@ -413,7 +413,7 @@ export default function Home() {
                           selectedDate === dateInfo.date && (
                             <div
                               key={dateInfo.date}
-                              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+                              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 min-h-[156px]"
                             >
                               {dateInfo.showtimes.map((showtime, idx) => {
                                 const inv = getInventoryForShowtime(showtime.formId);
@@ -428,12 +428,12 @@ export default function Home() {
                                   return (
                                     <div
                                       key={idx}
-                                      className="showtime-btn showtime-btn-coming-soon px-4 py-3 rounded-lg text-center cursor-not-allowed"
+                                      className="showtime-btn showtime-btn-coming-soon px-4 py-3 rounded-lg cursor-not-allowed"
                                     >
-                                      <span className="block text-lg font-bold opacity-60">
+                                      <span className="text-lg font-bold opacity-60">
                                         {displayTime || "TBD"}
                                       </span>
-                                      <span className="block text-xs text-[var(--color-brand-light)] mt-0.5">
+                                      <span className="text-xs text-[var(--color-brand-light)] mt-0.5">
                                         Coming Soon
                                       </span>
                                     </div>
@@ -445,12 +445,12 @@ export default function Home() {
                                   return (
                                     <div
                                       key={idx}
-                                      className="showtime-btn showtime-btn-sold-out px-4 py-3 rounded-lg text-center cursor-not-allowed"
+                                      className="showtime-btn showtime-btn-sold-out px-4 py-3 rounded-lg cursor-not-allowed"
                                     >
-                                      <span className="block text-lg font-bold line-through opacity-50">
+                                      <span className="text-lg font-bold line-through opacity-50">
                                         {displayTime}
                                       </span>
-                                      <span className="block text-xs font-semibold text-red-400 mt-0.5">
+                                      <span className="text-xs font-semibold text-red-400 mt-0.5">
                                         Sold Out
                                       </span>
                                     </div>
@@ -464,26 +464,20 @@ export default function Home() {
                                     href={ticketUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={`showtime-btn px-4 py-3 rounded-lg text-center ${
+                                    className={`showtime-btn px-4 py-3 rounded-lg ${
                                       isLowStock ? "showtime-btn-low-stock" : ""
                                     }`}
                                   >
-                                    <span className="block text-lg font-bold">
+                                    <span className="text-lg font-bold">
                                       {displayTime}
                                     </span>
-                                    {isLowStock && inv ? (
-                                      <span className="block text-xs font-semibold text-amber-400 mt-0.5">
-                                        Only {inv.available} left!
-                                      </span>
-                                    ) : inv && !inventoryLoading ? (
-                                      <span className="block text-xs opacity-70 mt-0.5">
-                                        {inv.available} available
-                                      </span>
-                                    ) : (
-                                      <span className="block text-xs opacity-70 mt-0.5">
-                                        {showtime.auditorium}
-                                      </span>
-                                    )}
+                                    <span className="text-xs opacity-70 mt-0.5">
+                                      {isLowStock && inv
+                                        ? <span className="font-semibold text-amber-400">Only {inv.available} left!</span>
+                                        : inv && !inventoryLoading
+                                        ? `${inv.available} available`
+                                        : showtime.auditorium}
+                                    </span>
                                   </a>
                                 );
                               })}
