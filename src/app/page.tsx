@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import showtimesConfig from "@/data/showtimes.json";
+import fallbackInventory from "@/data/fallback-inventory.json";
 import type { ShowtimesConfig, InventoryResponse, InventoryItem } from "@/types/showtimes";
 
 const { theaters, ticketPrice } = showtimesConfig as ShowtimesConfig;
@@ -93,37 +94,47 @@ export default function Home() {
     setIsAppleDevice(isApple);
   }, []);
 
-  // Fetch inventory data on mount
+  // Fetch all form details + inventory on mount (1 API call per form using expand)
   useEffect(() => {
-    const fetchInventory = async () => {
-      // Collect all form IDs from the config
-      const formIds = theaters.flatMap((theater) =>
-        theater.dates.flatMap((date) => date.showtimes)
-      );
+    const allFormIds = theaters.flatMap((theater) =>
+      theater.dates.flatMap((date) => date.showtimes)
+    );
+    if (allFormIds.length === 0) {
+      setInventoryLoading(false);
+      return;
+    }
 
-      if (formIds.length === 0) {
-        setInventoryLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/inventory?formIds=${formIds.join(",")}`);
-        if (response.ok) {
-          const data = await response.json();
-          setInventory(data);
+    fetch(`/api/inventory?formIds=${allFormIds.join(",")}`)
+      .then((res) => res.ok ? res.json() : Promise.reject(res.status))
+      .then((data) => {
+        const { _rateLimits, ...items } = data;
+        if (_rateLimits) {
+          const burstReset = new Date(_rateLimits.burstReset * 1000).toLocaleTimeString();
+          const dailyReset = new Date(_rateLimits.dailyReset * 1000).toLocaleTimeString();
+          const burstUsed = _rateLimits.burstLimit - _rateLimits.burstRemaining;
+          const dailyUsed = _rateLimits.dailyLimit - _rateLimits.dailyRemaining;
+          console.log(
+            `[Webconnex API] ${dailyUsed.toLocaleString()} of ${_rateLimits.dailyLimit.toLocaleString()} daily requests used (${_rateLimits.dailyRemaining.toLocaleString()} remaining, resets ${dailyReset}) | ${burstUsed} of ${_rateLimits.burstLimit} burst used (${_rateLimits.burstRemaining} remaining, resets ${burstReset})`
+          );
+          if (_rateLimits.dailyRemaining === 0) {
+            console.warn(`[Webconnex API] Daily limit exhausted. API calls will fail until ${dailyReset}.`);
+          } else if (_rateLimits.burstRemaining === 0) {
+            console.warn(`[Webconnex API] Burst limit exhausted. API calls will fail until ${burstReset}.`);
+          }
         }
-      } catch (error) {
+        if (Object.keys(items).length > 0) {
+          setInventory(items);
+        } else {
+          console.warn("[Webconnex API] No data returned, using fallback.");
+          setInventory(fallbackInventory as unknown as InventoryResponse);
+        }
+      })
+      .catch((error) => {
         console.error("Failed to fetch inventory:", error);
-      } finally {
-        setInventoryLoading(false);
-      }
-    };
-
-    fetchInventory();
-
-    // Refresh inventory every 60 seconds
-    const interval = setInterval(fetchInventory, 60000);
-    return () => clearInterval(interval);
+        console.warn("[Webconnex API] Using fallback data.");
+        setInventory(fallbackInventory as unknown as InventoryResponse);
+      })
+      .finally(() => setInventoryLoading(false));
   }, []);
 
   const getInventory = (formId: number): InventoryItem | null => {
@@ -488,7 +499,11 @@ export default function Home() {
                                     <span className="block text-lg font-bold">
                                       {displayTime || "Loading..."}
                                     </span>
-                                    {isLowStock && inv ? (
+                                    {inv && inv.capacity === 0 ? (
+                                      <span className="block text-xs opacity-70 mt-0.5">
+                                        Buy Tickets
+                                      </span>
+                                    ) : isLowStock && inv ? (
                                       <span className="block text-xs font-semibold text-amber-400 mt-0.5">
                                         Only {inv.available} left!
                                       </span>

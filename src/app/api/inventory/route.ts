@@ -10,12 +10,6 @@ interface WebconnexInventoryItem {
   quantity: number;
 }
 
-interface WebconnexInventoryResponse {
-  responseCode: number;
-  data: WebconnexInventoryItem[];
-  totalResults: number;
-}
-
 interface WebconnexFormResponse {
   responseCode: number;
   data: {
@@ -25,6 +19,7 @@ interface WebconnexFormResponse {
     status: string;
     eventStart: string;
     timeZone: string;
+    inventory?: WebconnexInventoryItem[];
   };
 }
 
@@ -56,8 +51,19 @@ function formatTime(isoString: string, timeZone: string): string {
 function determineStatus(sold: number, capacity: number): InventoryResult['status'] {
   const available = capacity - sold;
   if (available <= 0) return 'sold_out';
-  if (available <= Math.ceil(capacity * 0.1)) return 'low_stock'; // 10% or less remaining
+  if (available <= Math.ceil(capacity * 0.1)) return 'low_stock';
   return 'available';
+}
+
+async function fetchWithRetry(url: string, options: RequestInit, retries = 2): Promise<Response> {
+  const response = await fetch(url, options);
+  if (response.status === 429 && retries > 0) {
+    const retryAfter = parseInt(response.headers.get('retry-after') || '', 10);
+    const delay = retryAfter ? retryAfter * 1000 : 2000;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return fetchWithRetry(url, options, retries - 1);
+  }
+  return response;
 }
 
 export async function GET(request: NextRequest) {
@@ -87,42 +93,47 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const results: Record<number, InventoryResult> = {};
+  const fetchOptions: RequestInit = {
+    headers: { 'apiKey': API_KEY },
+    cache: 'no-store',
+  };
 
-  // Fetch form details and inventory for each form in parallel
+  const results: Record<number, InventoryResult> = {};
+  let rateLimits: Record<string, number> | null = null;
+
+  // Fetch form details + inventory in a single call per form using expand
   const fetchPromises = formIds.map(async (formId) => {
     try {
-      // Fetch both form details (for URL) and inventory in parallel
-      const [formResponse, inventoryResponse] = await Promise.all([
-        fetch(
-          `${WEBCONNEX_API_URL}/forms/${formId}?product=ticketspice.com`,
-          {
-            headers: { 'apiKey': API_KEY },
-            next: { revalidate: 300 }, // Cache form details for 5 minutes
-          }
-        ),
-        fetch(
-          `${WEBCONNEX_API_URL}/forms/${formId}/inventory`,
-          {
-            headers: { 'apiKey': API_KEY },
-            next: { revalidate: 30 }, // Cache inventory for 30 seconds
-          }
-        ),
-      ]);
+      const response = await fetchWithRetry(
+        `${WEBCONNEX_API_URL}/forms/${formId}?product=ticketspice.com&[]expand=inventory`,
+        fetchOptions,
+      );
 
-      if (!formResponse.ok || !inventoryResponse.ok) {
-        console.error(`Failed to fetch data for form ${formId}`);
+      // Capture rate limit headers
+      const burstRemaining = response.headers.get('x-burst-remaining');
+      if (burstRemaining !== null) {
+        rateLimits = {
+          burstLimit: Number(response.headers.get('x-burst-limit')),
+          burstRemaining: Number(burstRemaining),
+          burstReset: Number(response.headers.get('x-burst-limit-reset')),
+          dailyLimit: Number(response.headers.get('x-daily-limit')),
+          dailyRemaining: Number(response.headers.get('x-daily-remaining')),
+          dailyReset: Number(response.headers.get('x-daily-limit-reset')),
+        };
+      }
+
+      if (!response.ok) {
+        console.error(`Failed to fetch form ${formId}: ${response.status}`);
         return null;
       }
 
-      const formData: WebconnexFormResponse = await formResponse.json();
-      const inventoryData: WebconnexInventoryResponse = await inventoryResponse.json();
+      const formData: WebconnexFormResponse = await response.json();
 
       if (formData.responseCode !== 200 || !formData.data) {
         return null;
       }
 
-      // Get URL and time from form data
+      // Form details
       const publishedPath = formData.data.publishedPath || '';
       const url = publishedPath && !publishedPath.startsWith('http')
         ? `https://${publishedPath}`
@@ -131,12 +142,13 @@ export async function GET(request: NextRequest) {
       const timeZone = formData.data.timeZone || 'America/Los_Angeles';
       const time = formatTime(eventStart, timeZone);
 
-      // Sum up all inventory items (in case there are multiple ticket levels)
+      // Inventory from expanded data
       let sold = 0;
       let capacity = 0;
+      const inventoryItems = formData.data.inventory;
 
-      if (inventoryData.responseCode === 200 && inventoryData.data && inventoryData.data.length > 0) {
-        const totals = inventoryData.data.reduce(
+      if (inventoryItems && inventoryItems.length > 0) {
+        const totals = inventoryItems.reduce(
           (acc, item) => ({
             sold: acc.sold + item.sold,
             capacity: acc.capacity + item.quantity,
@@ -165,16 +177,15 @@ export async function GET(request: NextRequest) {
 
   const fetchResults = await Promise.all(fetchPromises);
 
-  // Build results object
   fetchResults.forEach((result) => {
     if (result) {
       results[result.formId] = result;
     }
   });
 
-  return NextResponse.json(results, {
+  return NextResponse.json({ ...results, ...(rateLimits ? { _rateLimits: rateLimits } : {}) }, {
     headers: {
-      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
     },
   });
 }
