@@ -7,6 +7,7 @@
       "name": "Cinemark Roseville Galleria Mall & XD",
       "location": "Roseville, CA",
       "address": "1191 Galleria Blvd, Roseville CA 95678",
+      "googlePlaceId": "ChIJC0AkXx4hm4ARU_zMZOGVbqg",
       "dates": [
         {
           "date": "2026-02-14",
@@ -25,6 +26,7 @@
       "name": "Cinemark Century Blue Oaks Theatres and XD",
       "location": "Rocklin, CA",
       "address": "6692 Lonetree Blvd, Rocklin CA 95765",
+      "googlePlaceId": "ChIJU08ZCycim4ARgpgPzaiuVTw",
       "dates": [
         {
           "date": "2026-02-14",

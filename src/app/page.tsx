@@ -80,6 +80,18 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [inventory, setInventory] = useState<InventoryResponse>({});
   const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [isAppleDevice, setIsAppleDevice] = useState(false);
+
+  // Detect Apple devices for Maps links (must run client-side after hydration)
+  useEffect(() => {
+    const isApple =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.userAgent.includes("Mac") && "ontouchend" in document) ||
+      (navigator.userAgent.includes("Mac") &&
+        navigator.userAgent.includes("Safari") &&
+        !navigator.userAgent.includes("Chrome"));
+    setIsAppleDevice(isApple);
+  }, []);
 
   // Fetch inventory data on mount
   useEffect(() => {
@@ -132,17 +144,18 @@ export default function Home() {
     setSelectedDate(selectedDate === date ? null : date);
   };
 
-  const getMapsUrl = (address: string) => {
-    const encodedAddress = encodeURIComponent(address);
-    // Check if user is on Apple device (iOS, iPadOS, or macOS Safari)
-    const isApple = typeof navigator !== "undefined" &&
-      (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
-       (navigator.userAgent.includes("Mac") && "ontouchend" in document) ||
-       (navigator.userAgent.includes("Mac") && navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome")));
-
-    if (isApple) {
-      return `https://maps.apple.com/?address=${encodedAddress}`;
+  const getMapsUrl = (theater: { name: string; address?: string; googlePlaceId?: string }) => {
+    if (isAppleDevice) {
+      // Apple Maps: use business name for accurate place resolution
+      const query = encodeURIComponent(theater.name);
+      return `https://maps.apple.com/?q=${query}`;
     }
+    // Google Maps: use Place ID for exact business listing
+    if (theater.googlePlaceId) {
+      return `https://www.google.com/maps/place/?q=place_id:${theater.googlePlaceId}`;
+    }
+    // Fallback to address search
+    const encodedAddress = encodeURIComponent(theater.address || theater.name);
     return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
   };
 
@@ -375,16 +388,23 @@ export default function Home() {
                     <h3 className="font-[var(--font-display)] text-xl md:text-2xl text-[var(--color-cream)] mb-1">
                       {theater.name}
                     </h3>
-                    <a
-                      href={getMapsUrl(theater.address || theater.location)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-2 text-[var(--color-cream)]/60 text-sm hover:text-[var(--color-brand-light)] transition-colors"
-                    >
-                      <MapPinIcon />
-                      {theater.location}
-                    </a>
+                    {selectedTheater === theater.id ? (
+                      <a
+                        href={getMapsUrl(theater)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-2 text-[var(--color-cream)]/60 text-sm hover:text-[var(--color-brand-light)] transition-colors"
+                      >
+                        <MapPinIcon />
+                        {theater.location}
+                      </a>
+                    ) : (
+                      <span className="flex items-center gap-2 text-[var(--color-cream)]/60 text-sm">
+                        <MapPinIcon />
+                        {theater.location}
+                      </span>
+                    )}
                   </div>
                   <div
                     className={`transform transition-transform duration-300 text-[var(--color-brand)] ${

@@ -9,6 +9,7 @@ export interface Theater {
   name: string;
   location: string;
   address?: string;
+  googlePlaceId?: string;
   dates: DateInfo[];
 }
 
