@@ -79,8 +79,8 @@ function ChevronDownIcon() {
 export default function Home() {
   const [selectedTheater, setSelectedTheater] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [inventory, setInventory] = useState<InventoryResponse>({});
-  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [inventory, setInventory] = useState<InventoryResponse>(fallbackInventory as unknown as InventoryResponse);
+  const [inventoryLoading] = useState(false);
   const [isAppleDevice, setIsAppleDevice] = useState(false);
 
   // Detect Apple devices for Maps links (must run client-side after hydration)
@@ -99,10 +99,7 @@ export default function Home() {
     const allFormIds = theaters.flatMap((theater) =>
       theater.dates.flatMap((date) => date.showtimes)
     );
-    if (allFormIds.length === 0) {
-      setInventoryLoading(false);
-      return;
-    }
+    if (allFormIds.length === 0) return;
 
     fetch(`/api/inventory?formIds=${allFormIds.join(",")}`)
       .then((res) => res.ok ? res.json() : Promise.reject(res.status))
@@ -124,17 +121,9 @@ export default function Home() {
         }
         if (Object.keys(items).length > 0) {
           setInventory(items);
-        } else {
-          console.warn("[Webconnex API] No data returned, using fallback.");
-          setInventory(fallbackInventory as unknown as InventoryResponse);
         }
       })
-      .catch((error) => {
-        console.error("Failed to fetch inventory:", error);
-        console.warn("[Webconnex API] Using fallback data.");
-        setInventory(fallbackInventory as unknown as InventoryResponse);
-      })
-      .finally(() => setInventoryLoading(false));
+      .catch((error) => console.error("Failed to fetch inventory:", error));
   }, []);
 
   const getInventory = (formId: number): InventoryItem | null => {
